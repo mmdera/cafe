@@ -1,22 +1,13 @@
-# NOIRÉ — Café & Kitchen
+# NOIRÉ — Café & Kitchen 2.0
 
-Premium React + Vite restaurant website based on the supplied master prompt.
+Premium React/Vite restaurant experience with editorial storytelling, interactive menu, persistent cart and WhatsApp ordering.
 
-## Run
-```bash
+## Run locally
 npm install
 npm run dev
-```
 
-Then open the Vite local URL.
+## Build
+npm run build
 
-## Included
-- Cinematic responsive hero
-- Framer Motion entrance/scroll/hover motion
-- Editorial menu tabs
-- Signature dish, story, features, gallery and reservation sections
-- WhatsApp reservation links and floating WhatsApp chat assistant
-- Mobile navigation
-- Accessible reduced-motion fallback
-
-Replace the sample Unsplash imagery and sample opening hours/menu content with the restaurant's real assets before production.
+## GitHub Pages
+The Vite base is configured for `/cafe/` and `.github/workflows/deploy.yml` deploys the `dist` build automatically from `main`.

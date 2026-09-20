@@ -1,172 +1,156 @@
-import React, {useEffect, useState} from "react";
-import {createRoot} from "react-dom/client";
-import {AnimatePresence, motion, useScroll, useTransform} from "framer-motion";
-import {ArrowDownRight, ArrowRight, CalendarDays, ChevronDown, Clock3, Instagram, MapPin, Menu, MessageCircle, Phone, Sparkles, X} from "lucide-react";
-import "./styles.css";
+import React, { useEffect, useMemo, useState } from 'react';
+import { createRoot } from 'react-dom/client';
+import { AnimatePresence, motion } from 'framer-motion';
+import {
+  ArrowUpRight, ChevronDown, ChevronLeft, ChevronRight, Clock3, Coffee,
+  Instagram, MapPin, Menu as MenuIcon, Minus, Plus, Search, ShoppingBag,
+  Sparkles, Star, Utensils, X, MessageCircle
+} from 'lucide-react';
+import './styles.css';
 
-const WA = "https://wa.me/918765989913";
-const wa = (message) => `${WA}?text=${encodeURIComponent(message)}`;
+const WHATSAPP = '918765989913';
+const WA_URL = `https://wa.me/${WHATSAPP}`;
 
-const menu = [
-  ["Signature Plates","Truffle Cream Pasta","Silky pasta, wild mushrooms, parmesan & aromatic truffle cream","₹399"],
-  ["Signature Plates","NOIRÉ Butter Chicken","Slow-cooked tomato gravy, cultured butter & house spices","₹449"],
-  ["Small Bites","Burrata Toast","Creamy burrata, roasted tomato, basil oil & sourdough","₹329"],
-  ["Small Bites","Crispy Parmesan Fries","Hand-cut potatoes, parmesan snow & herb aioli","₹249"],
-  ["Coffee","NOIRÉ Velvet Latte","Double espresso, silky milk & a hint of vanilla","₹189"],
-  ["Coffee","Spanish Cold Brew","Slow-steeped coffee, milk & soft caramel finish","₹219"],
-  ["Desserts","Dark Chocolate Tart","70% chocolate ganache, sea salt & vanilla cream","₹279"],
-  ["Desserts","Burnt Basque Cheesecake","Caramelised top, soft centre & berry compote","₹299"]
+const menuItems = [
+  { id:'sig1', category:'SIGNATURES', name:'Noiré Butter Chicken', description:'Charred chicken, tomato makhani, smoked butter & kasuri methi.', price:449, veg:false, image:'https://images.unsplash.com/photo-1603894584373-5ac82b2ae398?auto=format&fit=crop&w=1200&q=85', ingredients:'Chicken, tomato, butter, cream, kasuri methi, house spices' },
+  { id:'sig2', category:'SIGNATURES', name:'Truffle Cream Pasta', description:'Silky ribbons, wild mushrooms, parmesan & aromatic truffle cream.', price:399, veg:true, image:'https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=1200&q=85', ingredients:'Pasta, mushroom, parmesan, cream, truffle oil, herbs' },
+  { id:'st1', category:'STARTERS', name:'Smoked Paneer Skewers', description:'Tandoor-charred paneer, peppers, mint yoghurt & smoked chilli.', price:329, veg:true, image:'https://images.unsplash.com/photo-1599487488170-d11ec9c172f0?auto=format&fit=crop&w=1200&q=85', ingredients:'Paneer, bell peppers, yoghurt, mint, chilli, spices' },
+  { id:'st2', category:'STARTERS', name:'Crisp Chicken 65', description:'Southern spice, curry leaf, lime & a cool yoghurt dip.', price:349, veg:false, image:'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=1200&q=85', ingredients:'Chicken, curry leaf, chilli, ginger, garlic, yoghurt' },
+  { id:'m1', category:'MAINS', name:'Dal Noiré', description:'Slow-cooked black lentils finished with cultured butter and cream.', price:299, veg:true, image:'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=1200&q=85', ingredients:'Black lentils, butter, cream, tomato, spices' },
+  { id:'m2', category:'MAINS', name:'Makhani Chicken Bowl', description:'Tender chicken, fragrant rice, makhani glaze & pickled onions.', price:429, veg:false, image:'https://images.unsplash.com/photo-1512058564366-18510be2db19?auto=format&fit=crop&w=1200&q=85', ingredients:'Chicken, basmati rice, tomato, butter, cream, pickles' },
+  { id:'p1', category:'PASTA & PIZZA', name:'Burrata Margherita', description:'Slow-roasted tomato, basil, mozzarella, burrata & olive oil.', price:459, veg:true, image:'https://images.unsplash.com/photo-1579751626657-72bc17010498?auto=format&fit=crop&w=1200&q=85', ingredients:'Flour, tomato, mozzarella, burrata, basil, olive oil' },
+  { id:'p2', category:'PASTA & PIZZA', name:'Pesto Penne', description:'Basil pesto, toasted pine nuts, parmesan & blistered tomatoes.', price:359, veg:true, image:'https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=1200&q=85', ingredients:'Penne, basil, pine nuts, parmesan, tomato, olive oil' },
+  { id:'c1', category:'COFFEE', name:'Cold Coffee', description:'Slow-blended espresso, milk, vanilla cream & cocoa dust.', price:149, veg:true, image:'https://images.unsplash.com/photo-1461023058943-07fcbe16d735?auto=format&fit=crop&w=1200&q=85', ingredients:'Espresso, milk, vanilla, cocoa' },
+  { id:'c2', category:'COFFEE', name:'Noiré Cappuccino', description:'Double espresso, velvet microfoam and a dark cocoa finish.', price:169, veg:true, image:'https://images.unsplash.com/photo-1534778101976-62847782c213?auto=format&fit=crop&w=1200&q=85', ingredients:'Espresso, milk, cocoa' },
+  { id:'d1', category:'DESSERTS', name:'Biscoff Cheesecake', description:'Creamy cheesecake, biscuit crumb, caramel & sea salt.', price:249, veg:true, image:'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=1200&q=85', ingredients:'Cream cheese, biscuit, caramel, sugar, vanilla' },
+  { id:'d2', category:'DESSERTS', name:'Dark Chocolate Torte', description:'Dense chocolate, espresso, warm ganache & flaky salt.', price:269, veg:true, image:'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=1200&q=85', ingredients:'Dark chocolate, cocoa, flour, butter, espresso' },
+  { id:'b1', category:'BEVERAGES', name:'Rose Lemonade', description:'Fresh lemon, rose, mint and a delicate sparkle.', price:129, veg:true, image:'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=1200&q=85', ingredients:'Lemon, rose, mint, sparkling water' },
+  { id:'b2', category:'BEVERAGES', name:'Masala Chai', description:'Slow-brewed Assam tea, cardamom, ginger & warm spice.', price:99, veg:true, image:'https://images.unsplash.com/photo-1597318181409-cf64d0b5d8a2?auto=format&fit=crop&w=1200&q=85', ingredients:'Assam tea, milk, cardamom, ginger, spices' }
 ];
 
-const gallery = [
-  ["https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1400&q=85","The room"],
-  ["https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=1100&q=85","Morning coffee"],
-  ["https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=1100&q=85","Signature plate"],
-  ["https://images.unsplash.com/photo-1551024506-0bccd828d307?auto=format&fit=crop&w=1100&q=85","Dessert"],
-  ["https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1100&q=85","Dinner"],
-  ["https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1100&q=85","The table"]
-];
+const categories = ['SIGNATURES','STARTERS','MAINS','PASTA & PIZZA','COFFEE','DESSERTS','BEVERAGES'];
 
-const reveal = {hidden:{opacity:0,y:38},show:{opacity:1,y:0,transition:{duration:.8,ease:[.22,1,.36,1]}}};
-const stagger = {hidden:{},show:{transition:{staggerChildren:.08}}};
+const reveal = { hidden:{opacity:0,y:28}, show:{opacity:1,y:0,transition:{duration:.7,ease:[.22,1,.36,1]}} };
+const stagger = { hidden:{}, show:{transition:{staggerChildren:.07}} };
 
-function Reveal({children,className=""}) {
-  return <motion.div className={className} variants={reveal} initial="hidden" whileInView="show" viewport={{once:true,amount:.18}}>{children}</motion.div>
-}
+function formatINR(value){ return `₹${value.toLocaleString('en-IN')}`; }
 
 function App(){
-  const [open,setOpen]=useState(false);
-  const [chat,setChat]=useState(false);
-  const [category,setCategory]=useState("Signature Plates");
-  const [scrolled,setScrolled]=useState(false);
-  const {scrollYProgress}=useScroll();
-  const heroY=useTransform(scrollYProgress,[0,.3],[0,120]);
+  const [activeCategory,setActiveCategory]=useState('SIGNATURES');
+  const [cart,setCart]=useState(()=>{ try{return JSON.parse(localStorage.getItem('noire-cart')||'[]')}catch{return []} });
+  const [cartOpen,setCartOpen]=useState(false);
+  const [menuOpen,setMenuOpen]=useState(false);
+  const [selected,setSelected]=useState(null);
+  const [checkoutOpen,setCheckoutOpen]=useState(false);
+  const [searchOpen,setSearchOpen]=useState(false);
+  const [search,setSearch]=useState('');
+  const [order,setOrder]=useState({name:'',phone:'',type:'Takeaway',guests:'',address:''});
 
-  useEffect(()=>{
-    const fn=()=>setScrolled(window.scrollY>40);
-    window.addEventListener("scroll",fn); fn(); return()=>window.removeEventListener("scroll",fn);
-  },[]);
+  useEffect(()=>localStorage.setItem('noire-cart',JSON.stringify(cart)),[cart]);
 
-  const reservation=wa("Hello NOIRÉ! I'd like to make a reservation.\n\nName:\nDate:\nTime:\nGuests:\n\nPlease confirm availability.");
+  const totalQty=cart.reduce((s,i)=>s+i.qty,0);
+  const total=cart.reduce((s,i)=>s+i.price*i.qty,0);
+  const visibleItems=useMemo(()=>menuItems.filter(i=>i.category===activeCategory),[activeCategory]);
+  const searchResults=useMemo(()=>search.trim()?menuItems.filter(i=>`${i.name} ${i.category} ${i.description}`.toLowerCase().includes(search.toLowerCase())):[],[search]);
 
-  return <div className="site">
-    <header className={`nav ${scrolled?"nav-scrolled":""}`}>
-      <a className="logo" href="#home" onClick={()=>setOpen(false)}>NOIRÉ<span>•</span></a>
-      <nav className="desktop-nav">
-        {["home","story","menu","gallery","contact"].map((x)=><a key={x} href={`#${x}`}>{x==="home"?"Home":x==="story"?"Our Story":x[0].toUpperCase()+x.slice(1)}</a>)}
+  function add(item,qty=1){
+    setCart(prev=>{const found=prev.find(i=>i.id===item.id); return found?prev.map(i=>i.id===item.id?{...i,qty:i.qty+qty}:i):[...prev,{...item,qty}]});
+    setSelected(null);
+  }
+  function change(id,delta){ setCart(prev=>prev.map(i=>i.id===id?{...i,qty:i.qty+delta}:i).filter(i=>i.qty>0)); }
+  function remove(id){setCart(prev=>prev.filter(i=>i.id!==id));}
+  function scrollTo(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth'});setMenuOpen(false);}
+  function generateMessage(){
+    const lines=cart.map((i,n)=>`${n+1}. ${i.name} × ${i.qty} — ${formatINR(i.price*i.qty)}`).join('\n');
+    return `Hello NOIRÉ! 👋\n\nI'd like to place an order.\n\n━━━━━━━━━━━━━━\nORDER\n━━━━━━━━━━━━━━\n${lines}\n\n━━━━━━━━━━━━━━\nTOTAL: ${formatINR(total)}\n━━━━━━━━━━━━━━\n\nCustomer: ${order.name || 'Not provided'}\nPhone: ${order.phone || 'Not provided'}\nOrder Type: ${order.type}${order.guests?`\nGuests: ${order.guests}`:''}${order.address?`\nAddress: ${order.address}`:''}\n\nPlease confirm my order.\n\nThank you!`;
+  }
+  function sendWhatsApp(){
+    if(!cart.length)return;
+    window.open(`${WA_URL}?text=${encodeURIComponent(generateMessage())}`,'_blank','noopener,noreferrer');
+    setCheckoutOpen(false);setCartOpen(false);
+  }
+
+  return <div className="site-shell">
+    <header className="nav">
+      <button className="brand" onClick={()=>scrollTo('home')} aria-label="NOIRÉ home"><span>NOIRÉ</span><small>CAFÉ · KITCHEN</small></button>
+      <nav className="desktop-links">
+        {['home','story','menu','experience','gallery','contact'].map(x=><button key={x} onClick={()=>scrollTo(x)}>{x}</button>)}
       </nav>
       <div className="nav-actions">
-        <a className="nav-reserve" href={reservation} target="_blank" rel="noreferrer">Reserve a Table <ArrowRight size={15}/></a>
-        <button className="hamburger" onClick={()=>setOpen(true)} aria-label="Open menu"><Menu/></button>
+        <button className="icon-btn search-btn" onClick={()=>setSearchOpen(v=>!v)} aria-label="Search"><Search size={17}/></button>
+        <button className="cart-pill" onClick={()=>setCartOpen(true)}><ShoppingBag size={16}/><span>Cart ({totalQty})</span></button>
+        <a className="nav-wa" href={WA_URL} target="_blank" rel="noreferrer"><MessageCircle size={15}/> WhatsApp</a>
+        <button className="reserve-btn" onClick={()=>scrollTo('contact')}>Reserve</button>
+        <button className="mobile-menu-btn" onClick={()=>setMenuOpen(true)} aria-label="Open menu"><MenuIcon size={21}/></button>
       </div>
     </header>
 
-    <AnimatePresence>
-      {open && <motion.div className="mobile-menu" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}>
-        <button className="close" onClick={()=>setOpen(false)}><X/></button>
-        <div className="mobile-brand">NOIRÉ<span>•</span></div>
-        <div className="mobile-links">
-          {["Home","Our Story","Menu","Gallery","Contact"].map(x=><a key={x} href={`#${x==="Home"?"home":x==="Our Story"?"story":x.toLowerCase()}`} onClick={()=>setOpen(false)}>{x}</a>)}
-        </div>
-        <a className="button button-light" href={reservation} target="_blank" rel="noreferrer">Reserve via WhatsApp <ArrowRight size={17}/></a>
-      </motion.div>}
-    </AnimatePresence>
+    <AnimatePresence>{searchOpen&&<motion.div className="search-overlay" initial={{opacity:0,y:-15}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-15}}>
+      <div className="search-inner"><Search size={18}/><input autoFocus value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search the menu..."/><button onClick={()=>{setSearchOpen(false);setSearch('')}}><X size={19}/></button></div>
+      {search&&<div className="search-results">{searchResults.length?<>{searchResults.slice(0,5).map(i=><button key={i.id} onClick={()=>{setSelected(i);setSearchOpen(false)}}><img src={i.image}/><span><b>{i.name}</b><small>{i.category}</small></span><strong>{formatINR(i.price)}</strong></button>)}</>:<p>No dishes found.</p>}</div>}
+    </motion.div>}</AnimatePresence>
 
     <main>
       <section id="home" className="hero">
-        <motion.img style={{y:heroY}} className="hero-image" src="https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=2200&q=90" alt="Warm restaurant dining room"/>
-        <div className="hero-overlay"/>
+        <div className="hero-image"/>
+        <div className="hero-grain"/>
         <div className="hero-content">
           <motion.div variants={stagger} initial="hidden" animate="show">
-            <motion.p variants={reveal} className="eyebrow">CAFÉ • KITCHEN • EXPERIENCE</motion.p>
-            <motion.h1 variants={reveal}>Where Every<br/><em>Moment</em><br/>Tastes Better.</motion.h1>
-            <motion.p variants={reveal} className="hero-copy">An intimate dining experience crafted around exceptional food, thoughtful hospitality and unforgettable moments.</motion.p>
-            <motion.div variants={reveal} className="hero-buttons">
-              <a className="button button-gold" href={reservation} target="_blank" rel="noreferrer">Reserve a Table <ArrowRight size={17}/></a>
-              <a className="text-button" href="#menu">Explore Menu <ArrowDownRight size={17}/></a>
-            </motion.div>
+            <motion.p className="eyebrow" variants={reveal}>CAFÉ · KITCHEN · EXPERIENCE</motion.p>
+            <motion.h1 variants={reveal}>COME FOR THE<br/><em>FLAVOUR.</em><br/>STAY FOR THE<br/><em>MOMENTS.</em></motion.h1>
+            <motion.p className="hero-copy" variants={reveal}>A contemporary dining experience in the heart of Hardoi — crafted for long conversations, slow evenings and plates worth remembering.</motion.p>
+            <motion.div className="hero-ctas" variants={reveal}><button className="primary" onClick={()=>scrollTo('menu')}>Explore Menu <ArrowUpRight size={17}/></button><a className="ghost" href={WA_URL} target="_blank" rel="noreferrer">Order via WhatsApp <MessageCircle size={16}/></a></motion.div>
           </motion.div>
         </div>
-        <div className="hero-meta"><span><MapPin size={14}/> Hardoi, Uttar Pradesh</span><span className="scroll-label">SCROLL TO EXPLORE <ArrowDownRight size={15}/></span></div>
+        <div className="hero-meta"><span>HARDoi · UTTAR PRADESH</span><span>SCROLL TO DISCOVER <ChevronDown size={15}/></span></div>
       </section>
 
-      <section className="intro section">
-        <Reveal className="section-kicker">THE NOIRÉ EXPERIENCE</Reveal>
-        <div className="intro-grid">
-          <Reveal><h2>Good food brings people together. <em>Great food gives them something to remember.</em></h2></Reveal>
-          <Reveal><div className="intro-side"><p>NOIRÉ is a modern café and kitchen shaped around warm hospitality, honest ingredients and the quiet theatre of a beautiful meal.</p><a className="line-link" href="#story">Discover our story <ArrowRight size={16}/></a></div></Reveal>
+      <section id="story" className="story section-pad">
+        <motion.div className="section-kicker" variants={reveal} initial="hidden" whileInView="show" viewport={{once:true}}><span>01</span><i/> THE NOIRÉ STORY</motion.div>
+        <div className="story-grid">
+          <motion.div variants={reveal} initial="hidden" whileInView="show" viewport={{once:true}}><h2>A table is<br/><em>more than</em><br/>a place to eat.</h2></motion.div>
+          <motion.div className="story-copy" variants={reveal} initial="hidden" whileInView="show" viewport={{once:true}}><p className="lead">NOIRÉ was imagined as a warm corner of Hardoi where contemporary plates meet familiar Indian comfort.</p><p>We care about the details between the bites: the glow of the room, the first pour of coffee, the music behind a conversation and the dish that makes everyone reach for one more taste.</p><button className="text-link" onClick={()=>scrollTo('experience')}>Discover the experience <ArrowUpRight size={15}/></button></motion.div>
         </div>
+        <div className="story-marquee"><span>GOOD FOOD · SLOW MOMENTS · GOOD COMPANY · </span><span>GOOD FOOD · SLOW MOMENTS · GOOD COMPANY · </span></div>
       </section>
 
-      <section id="menu" className="menu-section section dark">
-        <div className="section-head">
-          <Reveal><p className="section-kicker">FROM OUR KITCHEN</p><h2>A menu with <em>character.</em></h2></Reveal>
-          <Reveal><a className="line-link light-link" href={wa("Hello NOIRÉ! Please share the full menu.")} target="_blank" rel="noreferrer">View Full Menu <ArrowRight size={16}/></a></Reveal>
-        </div>
-        <div className="category-tabs">
-          {["Signature Plates","Small Bites","Coffee","Desserts"].map(c=><button key={c} className={category===c?"active":""} onClick={()=>setCategory(c)}>{c}</button>)}
-        </div>
-        <motion.div className="menu-list" layout>
-          {menu.filter(x=>x[0]===category).map((item,i)=><motion.div className="menu-item" key={item[1]} initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:i*.07}}>
-            <div><span className="menu-number">0{i+1}</span><div><h3>{item[1]}</h3><p>{item[2]}</p></div></div><strong>{item[3]}</strong>
-          </motion.div>)}
+      <section id="menu" className="menu-section section-pad">
+        <div className="menu-heading"><div><div className="section-kicker"><span>02</span><i/> THE MENU</div><h2>Plates with a<br/><em>point of view.</em></h2></div><p>From comfort classics to signature pours, every item is designed to feel familiar — with just enough NOIRÉ in the details.</p></div>
+        <div className="category-bar">{categories.map(c=><button key={c} className={activeCategory===c?'active':''} onClick={()=>setActiveCategory(c)}>{c}</button>)}</div>
+        <motion.div className="menu-editorial" key={activeCategory} initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{duration:.45}}>
+          {visibleItems.map((item,index)=><motion.article key={item.id} className="dish-row" initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:index*.06}} onClick={()=>setSelected(item)}>
+            <div className="dish-index">0{index+1}</div><div className="dish-thumb"><img src={item.image} alt={item.name}/></div><div className="dish-info"><div className="dish-top"><h3>{item.name}</h3><span className={item.veg?'veg':'nonveg'}>{item.veg?'V':'NV'}</span></div><p>{item.description}</p></div><div className="dish-price">{formatINR(item.price)}</div><button className="add-mini" onClick={e=>{e.stopPropagation();add(item)}}><Plus size={17}/><span>Add</span></button>
+          </motion.article>)}
         </motion.div>
+        <div className="menu-note"><span>Tap any dish to view ingredients & details.</span><button onClick={()=>setCartOpen(true)}>Open your selection <ShoppingBag size={15}/></button></div>
       </section>
 
-      <section className="signature section">
-        <div className="signature-image-wrap"><motion.img whileInView={{scale:[1.08,1]}} transition={{duration:1.2}} viewport={{once:true}} src="https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=1600&q=90" alt="Truffle pasta"/></div>
-        <Reveal className="signature-copy"><p className="section-kicker">THE SIGNATURE</p><h2>A dish designed to become your <em>favourite.</em></h2><p>Silky pasta, wild mushrooms, parmesan and aromatic truffle cream — finished with the kind of restraint that lets every ingredient speak.</p><h3>NOIRÉ Truffle Pasta <span>₹399</span></h3><a className="button button-dark" href={wa("Hello NOIRÉ! I'd like to know more about the NOIRÉ Truffle Pasta.")} target="_blank" rel="noreferrer">Ask on WhatsApp <ArrowRight size={17}/></a></Reveal>
+      <section className="signature" id="experience">
+        <div className="signature-image"><img src={menuItems[0].image} alt="Noiré Butter Chicken"/></div>
+        <div className="signature-panel"><div className="section-kicker"><span>03</span><i/> THE SIGNATURE</div><p className="small-label">OUR TAKE ON A CLASSIC</p><h2>Butter chicken,<br/><em>the Noiré way.</em></h2><p>Smoky char, a velvet tomato sauce and the kind of warmth that belongs at the centre of the table. Rich without being heavy. Familiar without being predictable.</p><div className="signature-meta"><div><span>01</span><b>Charred<br/>chicken</b></div><div><span>02</span><b>Smoked<br/>butter</b></div><div><span>03</span><b>House<br/>makhani</b></div></div><button className="primary" onClick={()=>setSelected(menuItems[0])}>View dish <ArrowUpRight size={17}/></button></div>
       </section>
 
-      <section id="story" className="story section">
-        <div className="story-copy"><Reveal><p className="section-kicker">OUR STORY</p><h2>Made with <em>intention.</em></h2><p>We believe a restaurant should feel like somewhere you want to stay. Every plate starts with fresh ingredients and thoughtful preparation; every evening is finished with warm, attentive hospitality.</p></Reveal>
-          <div className="story-points"><span>Fresh ingredients</span><span>Crafted daily</span><span>Warm hospitality</span><span>Contemporary presentation</span></div>
-        </div>
-        <div className="story-image"><img src="https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=1400&q=90" alt="NOIRÉ interior"/></div>
-      </section>
+      <section className="experience-strip section-pad"><div className="experience-intro"><div className="section-kicker"><span>04</span><i/> THE EXPERIENCE</div><h2>Stay a little<br/><em>longer.</em></h2></div><div className="experience-list"><div><Clock3/><span><b>Slow afternoons</b><small>12:00 PM — 4:00 PM</small></span></div><div><Coffee/><span><b>Coffee after dinner</b><small>Freshly brewed, always</small></span></div><div><Utensils/><span><b>Made for sharing</b><small>Good food belongs in the middle</small></span></div><div><Sparkles/><span><b>Evenings at NOIRÉ</b><small>Warm light. Long conversations.</small></span></div></div></section>
 
-      <section className="features section">
-        <Reveal><p className="section-kicker">WHY NOIRÉ</p></Reveal>
-        <motion.div className="feature-grid" variants={stagger} initial="hidden" whileInView="show" viewport={{once:true,amount:.2}}>
-          {[["01","Fresh Ingredients","Thoughtfully selected ingredients."],["02","Crafted Daily","Prepared with care every day."],["03","Warm Hospitality","Service designed around the guest."],["04","Memorable Atmosphere","A space made for conversations and celebrations."]].map(x=><motion.div variants={reveal} className="feature" key={x[0]}><span>{x[0]}</span><h3>{x[1]}</h3><p>{x[2]}</p></motion.div>)}
-        </motion.div>
-      </section>
+      <section id="gallery" className="gallery-section section-pad"><div className="gallery-heading"><div className="section-kicker"><span>05</span><i/> FROM THE ROOM</div><h2>A little <em>NOIRÉ</em><br/>in every frame.</h2></div><div className="gallery-grid"><div className="g tall"><img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1200&q=85"/></div><div className="g"><img src="https://images.unsplash.com/photo-1515003197210-e0cd71810b5f?auto=format&fit=crop&w=1000&q=85"/></div><div className="g"><img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=1000&q=85"/></div><div className="g wide"><img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1600&q=85"/></div></div></section>
 
-      <section id="gallery" className="gallery section">
-        <div className="section-head"><Reveal><p className="section-kicker">A LITTLE LOOK AROUND</p><h2>Moments at <em>NOIRÉ.</em></h2></Reveal></div>
-        <div className="gallery-grid">
-          {gallery.map((g,i)=><motion.figure key={g[1]} className={`gallery-card g${i}`} whileHover={{y:-7}}><img src={g[0]} alt={g[1]}/><figcaption>{g[1]}</figcaption></motion.figure>)}
-        </div>
-      </section>
+      <section className="quote-section"><div className="quote-mark">“</div><blockquote>Come hungry.<br/><em>Leave with a story.</em></blockquote><div className="quote-credit"><span/><p>THE NOIRÉ TABLE<br/><small>Hardoi, Uttar Pradesh</small></p><span/></div></section>
 
-      <section className="quote-section dark"><div className="quote-mark">“</div><Reveal><blockquote>Beautiful ambience, delicious food and an experience that makes you want to come back.</blockquote><div className="stars">★★★★★</div><p>— Guest Experience</p></Reveal></section>
-
-      <section id="contact" className="reservation section">
-        <div><Reveal><p className="section-kicker">COME AS YOU ARE</p><h2>Your table is <em>waiting.</em></h2><p>Planning a dinner, celebration or simply a beautiful evening? We'd love to host you.</p></Reveal></div>
-        <Reveal className="reservation-actions"><a className="button button-dark" href={reservation} target="_blank" rel="noreferrer">Reserve via WhatsApp <MessageCircle size={17}/></a><a className="phone-link" href="tel:+918765989913"><Phone size={17}/> +91 8765989913</a></Reveal>
-      </section>
+      <section id="contact" className="contact-section section-pad"><div className="contact-grid"><div><div className="section-kicker"><span>06</span><i/> COME FIND US</div><h2>Your next<br/><em>favourite table.</em></h2><p className="contact-copy">For reservations, celebrations or a simple dinner that turns into a long evening, reach out to us directly.</p><div className="contact-details"><div><MapPin size={17}/><span>Hardoi, Uttar Pradesh<br/>India</span></div><div><MessageCircle size={17}/><a href={WA_URL} target="_blank" rel="noreferrer">+91 8765989913</a></div><div><Clock3 size={17}/><span>Mon — Sun · 11:00 AM — 11:00 PM</span></div></div></div><div className="reservation-card"><p className="small-label">RESERVATION</p><h3>Make it<br/><em>an occasion.</em></h3><p>Send us a WhatsApp and we'll help you plan your table.</p><a href={WA_URL} target="_blank" rel="noreferrer" className="primary full">Reserve via WhatsApp <ArrowUpRight size={17}/></a><a className="plain-phone" href="tel:+918765989913">Call +91 8765989913</a></div></div></section>
     </main>
 
-    <footer className="footer dark">
-      <div className="footer-top"><div><div className="footer-logo">NOIRÉ<span>•</span></div><p>Café & Kitchen</p></div><div className="footer-address"><p><MapPin size={15}/> Hardoi, Uttar Pradesh, India</p><p><Clock3 size={15}/> Mon–Sun · 11:00 AM — 11:00 PM</p></div><div className="footer-social"><a href={WA} target="_blank" rel="noreferrer"><MessageCircle/></a><a href="#" aria-label="Instagram"><Instagram/></a></div></div>
-      <div className="footer-bottom"><span>© 2026 NOIRÉ — Café & Kitchen</span><span>Made for memorable evenings.</span></div>
-    </footer>
+    <footer><div className="footer-top"><div className="footer-brand"><span>NOIRÉ</span><small>CAFÉ · KITCHEN</small></div><p>Good food. Slow moments.<br/>See you at the table.</p><a href={WA_URL} target="_blank" rel="noreferrer"><MessageCircle size={16}/> Chat on WhatsApp</a></div><div className="footer-bottom"><span>© 2026 NOIRÉ Café & Kitchen</span><span>Hardoi · Uttar Pradesh</span><span><Instagram size={14}/> @noirecafe</span></div></footer>
 
-    <AnimatePresence>
-      {chat && <motion.div className="chat-panel" initial={{opacity:0,y:20,scale:.96}} animate={{opacity:1,y:0,scale:1}} exit={{opacity:0,y:20,scale:.96}}>
-        <div className="chat-head"><div><strong>Chat with NOIRÉ</strong><small>Usually replies on WhatsApp</small></div><button onClick={()=>setChat(false)}><X size={18}/></button></div>
-        <p className="chat-intro">Hi. How can we help you today?</p>
-        <div className="quick-actions">
-          <a href="#menu" onClick={()=>setChat(false)}>🍽️ View Menu</a>
-          <a href={reservation} target="_blank" rel="noreferrer">📅 Reserve a Table</a>
-          <a href="https://www.google.com/maps/search/?api=1&query=Hardoi%2C%20Uttar%20Pradesh" target="_blank" rel="noreferrer">📍 Get Directions</a>
-          <a href="tel:+918765989913">📞 Call Us</a>
-          <a className="wa-action" href={WA} target="_blank" rel="noreferrer">💬 Continue on WhatsApp</a>
-        </div>
-      </motion.div>}
-    </AnimatePresence>
-    <button className="chat-fab" onClick={()=>setChat(!chat)} aria-label="Chat with NOIRÉ"><MessageCircle size={21}/><span>Chat with NOIRÉ</span></button>
+    <button className="floating-wa" onClick={()=>window.open(WA_URL,'_blank','noopener,noreferrer')} aria-label="Chat on WhatsApp"><MessageCircle size={21}/><span>Chat</span></button>
+
+    <AnimatePresence>{menuOpen&&<motion.div className="mobile-overlay" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}><button className="mobile-close" onClick={()=>setMenuOpen(false)}><X/></button><div className="mobile-menu-content"><span className="mobile-menu-logo">NOIRÉ</span>{['home','story','menu','experience','gallery','contact'].map((x,i)=><motion.button key={x} initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{delay:i*.07}} onClick={()=>scrollTo(x)}>{x}<ArrowUpRight size={17}/></motion.button>)}<a className="mobile-order" href={WA_URL} target="_blank" rel="noreferrer">ORDER ON WHATSAPP <MessageCircle size={17}/></a></div></motion.div>}</AnimatePresence>
+
+    <AnimatePresence>{selected&&<motion.div className="modal-backdrop" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onMouseDown={()=>setSelected(null)}><motion.div className="dish-modal" initial={{opacity:0,y:30,scale:.98}} animate={{opacity:1,y:0,scale:1}} exit={{opacity:0,y:20}} onMouseDown={e=>e.stopPropagation()}><button className="modal-close" onClick={()=>setSelected(null)}><X/></button><div className="modal-img"><img src={selected.image} alt={selected.name}/></div><div className="modal-body"><div className="modal-category">{selected.category} <span className={selected.veg?'veg':'nonveg'}>{selected.veg?'VEGETARIAN':'NON-VEGETARIAN'}</span></div><h2>{selected.name}</h2><p>{selected.description}</p><div className="ingredient-box"><small>INGREDIENTS</small><span>{selected.ingredients}</span></div><div className="modal-bottom"><strong>{formatINR(selected.price)}</strong><button className="primary" onClick={()=>add(selected)}>Add to cart <Plus size={17}/></button></div></div></motion.div></motion.div>}</AnimatePresence>
+
+    <AnimatePresence>{cartOpen&&<motion.div className="drawer-backdrop" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} onMouseDown={()=>setCartOpen(false)}><motion.aside className="cart-drawer" initial={{x:'100%'}} animate={{x:0}} exit={{x:'100%'}} transition={{type:'spring',damping:28,stiffness:260}} onMouseDown={e=>e.stopPropagation()}><div className="drawer-head"><div><small>YOUR SELECTION</small><h2>{totalQty ? `${totalQty} ${totalQty===1?'item':'items'}` : 'Your table is waiting.'}</h2></div><button onClick={()=>setCartOpen(false)}><X/></button></div>{cart.length?<><div className="cart-items">{cart.map(i=><div className="cart-item" key={i.id}><img src={i.image}/><div className="cart-item-info"><b>{i.name}</b><span>{formatINR(i.price*i.qty)}</span><div className="qty"><button onClick={()=>change(i.id,-1)}><Minus size={13}/></button><span>{i.qty}</span><button onClick={()=>change(i.id,1)}><Plus size={13}/></button><button className="remove" onClick={()=>remove(i.id)}>Remove</button></div></div></div>)}</div><div className="cart-foot"><div><span>Subtotal</span><strong>{formatINR(total)}</strong></div><div className="total-row"><span>Total</span><strong>{formatINR(total)}</strong></div><button className="primary full" onClick={()=>setCheckoutOpen(true)}>Order via WhatsApp <ArrowUpRight size={17}/></button><button className="clear" onClick={()=>setCart([])}>Clear selection</button></div></>:<div className="empty-cart"><div className="empty-icon"><ShoppingBag/></div><h3>Your table is still waiting.</h3><p>Add something delicious to begin.</p><button className="primary" onClick={()=>{setCartOpen(false);scrollTo('menu')}}>Explore Menu</button></div>}</motion.aside></motion.div>}</AnimatePresence>
+
+    <AnimatePresence>{checkoutOpen&&<motion.div className="modal-backdrop" initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}><motion.div className="checkout-modal" initial={{opacity:0,y:25}} animate={{opacity:1,y:0}} exit={{opacity:0,y:20}}><button className="modal-close" onClick={()=>setCheckoutOpen(false)}><X/></button><div className="checkout-head"><small>FINAL STEP</small><h2>Your order,<br/><em>your way.</em></h2><p>We'll open WhatsApp with everything already prepared.</p></div><div className="checkout-layout"><div className="checkout-form"><label>Name<input value={order.name} onChange={e=>setOrder({...order,name:e.target.value})} placeholder="Your name"/></label><label>Phone<input value={order.phone} onChange={e=>setOrder({...order,phone:e.target.value})} placeholder="+91" inputMode="tel"/></label><label>Order type<select value={order.type} onChange={e=>setOrder({...order,type:e.target.value})}><option>Dine-in</option><option>Takeaway</option><option>Delivery</option></select></label>{order.type==='Dine-in'&&<label>Number of guests<input value={order.guests} onChange={e=>setOrder({...order,guests:e.target.value})} placeholder="2" inputMode="numeric"/></label>}{order.type==='Delivery'&&<label>Address<textarea value={order.address} onChange={e=>setOrder({...order,address:e.target.value})} placeholder="Delivery address"/></label>}</div><div className="checkout-summary"><small>YOUR ORDER</small>{cart.map(i=><div key={i.id}><span>{i.name} × {i.qty}</span><b>{formatINR(i.price*i.qty)}</b></div>)}<hr/><div className="summary-total"><span>TOTAL</span><b>{formatINR(total)}</b></div></div></div><button className="primary full checkout-btn" onClick={sendWhatsApp}>Confirm & Continue to WhatsApp <ArrowUpRight size={17}/></button></motion.div></motion.div>}</AnimatePresence>
   </div>
 }
 
-createRoot(document.getElementById("root")).render(<App/>);
+createRoot(document.getElementById('root')).render(<App/>);
